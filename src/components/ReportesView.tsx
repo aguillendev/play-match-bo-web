@@ -22,7 +22,7 @@ import { useReporteStore } from '../store/useReporteStore';
 import { ReporteUso } from '../types';
 
 interface ReportesViewProps {
-  canchaId: string;
+  canchaId: number;
 }
 
 const ReportesView = ({ canchaId }: ReportesViewProps) => {

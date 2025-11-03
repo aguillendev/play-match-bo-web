@@ -7,7 +7,7 @@ type ReservaState = {
   reservas: Reserva[];
   loading: boolean;
   error?: string;
-  fetchReservas: (canchaId: string) => Promise<void>;
+  fetchReservas: (canchaId: number) => Promise<void>;
 };
 
 export const useReservaStore = create<ReservaState>()(

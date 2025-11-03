@@ -6,7 +6,7 @@ const useMocks = (import.meta as any).env?.VITE_USE_MOCKS !== 'false';
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 interface ObtenerReporteInput {
-  canchaId: string;
+  canchaId: number;
   periodo: ReporteUso['periodo'];
 }
 

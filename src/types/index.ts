@@ -1,20 +1,22 @@
-export type CanchaTipo = 'Fútbol 5' | 'Fútbol 7' | 'Fútbol 11' | 'Pádel' | 'Básquet';
+export type Deporte = 'FUTBOL' | 'PADEL' | 'TENIS' | 'BASQUET' | 'OTRO';
 
-export interface HorarioDisponible {
-  dia: string;
-  apertura: string;
-  cierre: string;
+export interface HorarioIntervalo {
+  inicio: string; // HH:mm[:ss]
+  fin: string; // HH:mm[:ss]
 }
 
 export interface Cancha {
-  id: string;
+  id: number;
   nombre: string;
   direccion: string;
-  tipo: CanchaTipo;
-  valorHora: number;
+  tipo: Deporte;
+  precioHora: number;
   latitud?: number;
   longitud?: number;
-  horarios: HorarioDisponible[];
+  horarioApertura?: string;
+  horarioCierre?: string;
+  horarios: HorarioIntervalo[];
+  tieneReservasFuturas?: boolean;
 }
 
 export type EstadoReserva = 'pendiente' | 'confirmada' | 'cancelada';

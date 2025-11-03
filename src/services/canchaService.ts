@@ -1,26 +1,20 @@
-import { v4 as uuid } from 'uuid';
 import { httpClient } from '../utils/httpClient';
-import { Cancha, HorarioDisponible } from '../types';
+import { Cancha, HorarioIntervalo, Deporte } from '../types';
 
 const useMocks = (import.meta as any).env?.VITE_USE_MOCKS !== 'false';
 
 let mockCanchas: Cancha[] = [
   {
-    id: '1',
+    id: 1,
     nombre: 'PlayMatch Central',
     direccion: 'Av. Principal 123, La Paz',
-    tipo: 'Fútbol 7',
-    valorHora: 180,
+    tipo: 'PADEL',
+    precioHora: 180,
     latitud: -16.4897,
     longitud: -68.1193,
     horarios: [
-      { dia: 'Lunes', apertura: '08:00', cierre: '22:00' },
-      { dia: 'Martes', apertura: '08:00', cierre: '22:00' },
-      { dia: 'Miércoles', apertura: '08:00', cierre: '22:00' },
-      { dia: 'Jueves', apertura: '08:00', cierre: '22:00' },
-      { dia: 'Viernes', apertura: '08:00', cierre: '00:00' },
-      { dia: 'Sábado', apertura: '08:00', cierre: '00:00' },
-      { dia: 'Domingo', apertura: '09:00', cierre: '20:00' },
+      { inicio: '09:00', fin: '12:00' },
+      { inicio: '16:00', fin: '23:00' },
     ],
   },
 ];
@@ -33,29 +27,23 @@ async function listar(): Promise<Cancha[]> {
     return [...mockCanchas];
   }
 
-  const response = await httpClient.get<Cancha[]>('/canchas');
-  return response.data;
+  const response = await httpClient.get<any[]>('/canchas');
+  return response.data.map(fromApi);
 }
 
-async function crear(
-  payload: Omit<Cancha, 'id' | 'horarios'> & { horarios?: HorarioDisponible[] },
-): Promise<Cancha> {
+async function crear(payload: Omit<Cancha, 'id'>): Promise<Cancha> {
   if (useMocks) {
     await delay(500);
-    const nueva: Cancha = {
-      ...payload,
-      id: uuid(),
-      horarios: payload.horarios ?? [],
-    };
+    const nueva: Cancha = { ...payload, id: Math.floor(Math.random() * 100000) };
     mockCanchas = [...mockCanchas, nueva];
     return nueva;
   }
 
-  const response = await httpClient.post<Cancha>('/canchas', payload);
-  return response.data;
+  const response = await httpClient.post<any>('/canchas', toApiRequest(payload));
+  return fromApi(response.data);
 }
 
-async function actualizarHorarios(id: string, horarios: HorarioDisponible[]): Promise<Cancha> {
+async function actualizarHorarios(id: number, horarios: HorarioIntervalo[]): Promise<Cancha> {
   if (useMocks) {
     await delay(500);
     mockCanchas = mockCanchas.map((cancha) => (cancha.id === id ? { ...cancha, horarios } : cancha));
@@ -66,12 +54,70 @@ async function actualizarHorarios(id: string, horarios: HorarioDisponible[]): Pr
     return found;
   }
 
-  const response = await httpClient.put<Cancha>(`/canchas/${id}/horarios`, { horarios });
-  return response.data;
+  // Obtener datos actuales para cumplir validaciones del backend
+  const currentList = await listar();
+  const current = currentList.find((c) => c.id === id);
+  if (!current) throw new Error('Cancha no encontrada');
+  const body = toApiRequest({ ...current, horarios });
+  const response = await httpClient.put<any>(`/canchas/${id}/horarios`, body);
+  return fromApi(response.data);
 }
 
 export const canchaService = {
   listar,
   crear,
   actualizarHorarios,
+  actualizar,
+  eliminar,
 };
+
+// Mappers
+function fromApi(c: any): Cancha {
+  return {
+    id: c.id,
+    nombre: c.nombre,
+    direccion: c.direccion,
+    tipo: c.tipo as Deporte,
+    precioHora: Number(c.precioHora),
+    latitud: c.latitud,
+    longitud: c.longitud,
+    horarioApertura: c.horarioApertura ?? undefined,
+    horarioCierre: c.horarioCierre ?? undefined,
+    horarios: (c.horarios ?? []).map((h: any) => ({ inicio: h.inicio, fin: h.fin })),
+    tieneReservasFuturas: Boolean(c.tieneReservasFuturas),
+  };
+}
+
+function toApiRequest(c: Omit<Cancha, 'id'>): any {
+  return {
+    nombre: c.nombre,
+    direccion: c.direccion,
+    latitud: c.latitud,
+    longitud: c.longitud,
+    precioHora: c.precioHora,
+    horarioApertura: c.horarioApertura ?? null,
+    horarioCierre: c.horarioCierre ?? null,
+    tipo: c.tipo,
+    horarios: (c.horarios ?? []).map((h) => ({ inicio: h.inicio, fin: h.fin })),
+  };
+}
+
+async function actualizar(id: number, payload: Omit<Cancha, 'id'>): Promise<Cancha> {
+  if (useMocks) {
+    await delay(300);
+    mockCanchas = mockCanchas.map((c) => (c.id === id ? { ...payload, id } : c));
+    const found = mockCanchas.find((c) => c.id === id)!;
+    return found;
+  }
+  const response = await httpClient.put<any>(`/canchas/${id}`, toApiRequest(payload));
+  return fromApi(response.data);
+}
+
+async function eliminar(id: number): Promise<void> {
+  if (useMocks) {
+    await delay(200);
+    mockCanchas = mockCanchas.filter((c) => c.id !== id);
+    return;
+  }
+  await httpClient.delete(`/canchas/${id}`);
+}

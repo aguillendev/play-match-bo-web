@@ -21,7 +21,7 @@ import { useReservaStore } from '../store/useReservaStore';
 import { EstadoReserva } from '../types';
 
 interface ReservasTableProps {
-  canchaId: string;
+  canchaId: number;
 }
 
 const estadoLabels: Record<EstadoReserva, string> = {

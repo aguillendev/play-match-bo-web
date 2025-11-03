@@ -7,7 +7,7 @@ type ReporteState = {
   reporte?: ReporteUso;
   loading: boolean;
   error?: string;
-  fetchReporte: (canchaId: string, periodo: ReporteUso['periodo']) => Promise<void>;
+  fetchReporte: (canchaId: number, periodo: ReporteUso['periodo']) => Promise<void>;
 };
 
 export const useReporteStore = create<ReporteState>()(

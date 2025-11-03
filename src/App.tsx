@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import CanchaForm from './components/CanchaForm';
 import HorariosManager from './components/HorariosManager';
@@ -8,37 +8,54 @@ import ReservasTable from './components/ReservasTable';
 import PerfilDueno from './components/PerfilDueno';
 import NavigationLayout, { NavItem } from './components/NavigationLayout';
 import { useCanchaStore } from './store/useCanchaStore';
+import { useAuthStore } from './store/useAuthStore';
+import Login from './components/Login';
+import Register from './components/Register';
 
 function App() {
   const canchas = useCanchaStore((state) => state.canchas);
+  const selectedId = useCanchaStore((state) => state.selectedId);
+  const { token, init } = useAuthStore((s) => ({ token: s.token, init: s.init }));
+  const location = useLocation();
+
+  useEffect(() => { init(); }, [init]);
 
   const navItems = useMemo<NavItem[]>(
     () => [
       { label: 'Dashboard', path: '/dashboard' },
       { label: 'Canchas', path: '/canchas' },
-      { label: 'Horarios', path: '/horarios' },
       { label: 'Reservas', path: '/reservas' },
       { label: 'Reportes', path: '/reportes' },
-      { label: 'Perfil', path: '/perfil' },
     ],
     [],
   );
 
-  const defaultCanchaId = canchas[0]?.id ?? '1';
+  const activeCanchaId = selectedId ?? canchas[0]?.id ?? 1;
+
+  if (!token && location.pathname !== '/login' && location.pathname !== '/register') {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
-    <NavigationLayout items={navItems}>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/canchas" element={<CanchaForm />} />
-        <Route path="/horarios" element={<HorariosManager canchaId={defaultCanchaId} />} />
-        <Route path="/reservas" element={<ReservasTable canchaId={defaultCanchaId} />} />
-        <Route path="/reportes" element={<ReportesView canchaId={defaultCanchaId} />} />
-        <Route path="/perfil" element={<PerfilDueno />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </NavigationLayout>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route
+        path="/*"
+        element={
+          <NavigationLayout items={navItems}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/canchas" element={<CanchaForm />} />
+              <Route path="/reservas" element={<ReservasTable canchaId={activeCanchaId} />} />
+              <Route path="/reportes" element={<ReportesView canchaId={activeCanchaId} />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </NavigationLayout>
+        }
+      />
+    </Routes>
   );
 }
 

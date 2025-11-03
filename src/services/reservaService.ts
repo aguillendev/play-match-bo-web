@@ -28,10 +28,10 @@ let mockReservas: Reserva[] = [
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function listarPorCancha(canchaId: string): Promise<Reserva[]> {
+async function listarPorCancha(canchaId: number): Promise<Reserva[]> {
   if (useMocks) {
     await delay(300);
-    return mockReservas.filter((reserva) => reserva.canchaId === canchaId);
+    return mockReservas.filter((reserva) => reserva.canchaId === String(canchaId));
   }
 
   const response = await httpClient.get<Reserva[]>(`/reservas/canchas/${canchaId}`);
