@@ -37,10 +37,64 @@ async function obtener({ canchaId, periodo }: ObtenerReporteInput): Promise<Repo
     };
   }
 
-  const response = await httpClient.get<ReporteUso>(`/reportes/reservas`, {
+  // Backend returns List<ReporteReservasResponse> with: fecha, horaInicio, horaFin, totalReservas, recaudacion
+  const response = await httpClient.get<Array<{ 
+    fecha: string; 
+    horaInicio?: string; 
+    horaFin?: string; 
+    totalReservas: number; 
+    recaudacion: number;
+  }>>(`/reportes/reservas`, {
     params: { periodo, canchaId },
   });
-  return response.data;
+
+  // Transform backend response to frontend format
+  const data = response.data;
+  
+  // Create series based on period
+  const series = data.map(item => {
+    let etiqueta: string;
+    
+    if (periodo === 'dia' && item.horaInicio) {
+      // Para "día", mostrar el rango horario
+      const horaInicio = item.horaInicio.substring(0, 5); // "HH:mm"
+      const horaFin = item.horaFin?.substring(0, 5) || '';
+      etiqueta = `${horaInicio} - ${horaFin}`;
+    } else {
+      // Para "semana" y "mes", mostrar la fecha
+      etiqueta = formatDateLabel(item.fecha, periodo);
+    }
+    
+    return {
+      etiqueta,
+      reservas: item.totalReservas,
+      recaudacion: item.recaudacion,
+    };
+  });
+
+  const totalReservas = data.reduce((sum, item) => sum + item.totalReservas, 0);
+  const totalRecaudado = data.reduce((sum, item) => sum + item.recaudacion, 0);
+
+  return {
+    periodo,
+    totalReservas,
+    totalRecaudado,
+    ocupacionPorcentaje: Math.min(100, Math.round((totalReservas / 40) * 100)),
+    series,
+  };
+}
+
+function formatDateLabel(fecha: string, periodo: ReporteUso['periodo']): string {
+  const date = new Date(fecha + 'T12:00:00'); // Agregar hora para evitar problemas de zona horaria
+  
+  if (periodo === 'dia') {
+    return `${date.getDate()}/${date.getMonth() + 1}`;
+  } else if (periodo === 'semana') {
+    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    return dias[date.getDay()];
+  } else {
+    return `${date.getDate()}/${date.getMonth() + 1}`;
+  }
 }
 
 export const reporteService = {

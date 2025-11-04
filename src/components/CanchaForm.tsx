@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Grid, MenuItem, Paper, Snackbar, Stack, TextField, Typography } from '@mui/material';
+import { SportsSoccer, SportsTennis, SportsBasketball, SportsEsports } from '@mui/icons-material';
 import HorariosManager from './HorariosManager';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -8,6 +9,23 @@ import { useCanchaStore } from '../store/useCanchaStore';
 import { Deporte } from '../types';
 
 const TIPOS: Deporte[] = ['FUTBOL', 'PADEL', 'TENIS', 'BASQUET', 'OTRO'];
+
+const getDeporteIcon = (tipo: Deporte) => {
+  const iconProps = { sx: { fontSize: 40, color: 'primary.main' } };
+  switch (tipo) {
+    case 'FUTBOL':
+      return <SportsSoccer {...iconProps} />;
+    case 'PADEL':
+      return <SportsTennis {...iconProps} />;
+    case 'TENIS':
+      return <SportsTennis {...iconProps} />;
+    case 'BASQUET':
+      return <SportsBasketball {...iconProps} />;
+    case 'OTRO':
+    default:
+      return <SportsEsports {...iconProps} />;
+  }
+};
 
 const schema = yup.object({
   nombre: yup.string().required('Ingresa el nombre de la cancha'),
@@ -35,7 +53,7 @@ async function obtenerUbicacion(): Promise<{ latitud: number; longitud: number }
 
 const CanchaForm = () => {
   const { register, control, handleSubmit, formState, reset } = useForm<FormData>({
-    defaultValues: { nombre: '', direccion: '', tipo: 'FUTBOL' },
+    defaultValues: { nombre: '', direccion: '', tipo: undefined, precioHora: undefined },
     resolver: yupResolver(schema),
   });
   const { errors, isSubmitting } = formState;
@@ -64,14 +82,16 @@ const CanchaForm = () => {
         if (editingId) {
           const actualizada = await updateCancha(editingId, { ...data, latitud: ubicacion?.latitud, longitud: ubicacion?.longitud, horarios: [] } as any);
           if (actualizada) {
-            reset({ nombre: '', direccion: '', tipo: 'FUTBOL' });
+            reset({ nombre: '', direccion: '', tipo: undefined, precioHora: undefined });
             setEditingId(undefined);
+            setFormOpen(false);
             setAlerta(`Cancha "${actualizada.nombre}" actualizada.`);
           }
         } else {
           const nueva = await addCancha({ ...data, latitud: ubicacion?.latitud, longitud: ubicacion?.longitud, horarios: [] } as any);
           if (nueva) {
-            reset({ nombre: '', direccion: '', tipo: 'FUTBOL' });
+            reset({ nombre: '', direccion: '', tipo: undefined, precioHora: undefined });
+            setFormOpen(false);
             setAlerta(`Cancha "${nueva.nombre}" registrada correctamente.`);
           }
         }
@@ -87,7 +107,7 @@ const CanchaForm = () => {
     <Box>
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
         <Typography variant="h4">Canchas</Typography>
-        <Button variant="contained" onClick={() => { setEditingId(undefined); reset({ nombre: '', direccion: '', tipo: 'FUTBOL' }); setFormOpen(true); }}>
+        <Button variant="contained" onClick={() => { setEditingId(undefined); reset({ nombre: '', direccion: '', tipo: undefined, precioHora: undefined }); setFormOpen(true); }}>
           Nueva cancha
         </Button>
       </Box>
@@ -99,25 +119,30 @@ const CanchaForm = () => {
           {canchas.map((c) => (
             <Grid item xs={12} md={6} key={c.id}>
               <Paper sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle1">{c.nombre}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {c.direccion} • {c.tipo} • Bs. {c.precioHora}
-                  </Typography>
-                  {c.horarios && c.horarios.length > 0 && (
-                    <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" useFlexGap>
-                      {c.horarios.map((h, idx) => (
-                        <Chip key={idx} size="small" label={`${h.inicio.slice(0,5)}–${h.fin.slice(0,5)}`} />
-                      ))}
-                    </Stack>
-                  )}
+                <Box display="flex" alignItems="center" gap={2} sx={{ flex: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {getDeporteIcon(c.tipo as Deporte)}
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle1">{c.nombre}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {c.direccion} • {c.tipo} • ${c.precioHora}
+                    </Typography>
+                    {c.horarios && c.horarios.length > 0 && (
+                      <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" useFlexGap>
+                        {c.horarios.map((h, idx) => (
+                          <Chip key={idx} size="small" label={`${h.inicio.slice(0,5)}–${h.fin.slice(0,5)}`} />
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
                 </Box>
                 <Box display="flex" gap={1}>
                   <Button
                     variant="outlined"
                     onClick={() => {
                       setEditingId(c.id);
-                      reset({ nombre: c.nombre, direccion: c.direccion, tipo: c.tipo as any });
+                      reset({ nombre: c.nombre, direccion: c.direccion, tipo: c.tipo as any, precioHora: c.precioHora });
                       setFormOpen(true);
                     }}
                   >

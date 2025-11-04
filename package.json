@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:backend": "cross-env VITE_USE_MOCKS=false vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
@@ -20,16 +21,17 @@
     "react-hook-form": "^7.51.5",
     "react-router-dom": "^6.23.1",
     "recharts": "^2.7.2",
+    "uuid": "^9.0.1",
     "yup": "^1.4.0",
-    "zustand": "^4.5.2",
-    "uuid": "^9.0.1"
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7",
+    "@types/uuid": "^9.0.8",
     "@vitejs/plugin-react": "^4.3.0",
+    "cross-env": "^10.1.0",
     "typescript": "^5.4.5",
-    "vite": "^5.2.11",
-    "@types/uuid": "^9.0.8"
+    "vite": "^5.2.11"
   }
 }

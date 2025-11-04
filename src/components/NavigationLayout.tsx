@@ -17,6 +17,10 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
+import EventIcon from '@mui/icons-material/Event';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import { Menu, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -47,12 +51,53 @@ function NavigationLayout({ items, children }: NavigationLayoutProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
 
+  const getIconForLabel = (label: string) => {
+    switch (label) {
+      case 'Dashboard':
+        return <DashboardIcon sx={{ mr: 2 }} />;
+      case 'Canchas':
+        return <SportsSoccerIcon sx={{ mr: 2 }} />;
+      case 'Reservas':
+        return <EventIcon sx={{ mr: 2 }} />;
+      case 'Reportes':
+        return <AssessmentIcon sx={{ mr: 2 }} />;
+      default:
+        return null;
+    }
+  };
+
   const navList = (
     <Box role="presentation" onClick={() => setOpen(false)} sx={{ width: drawerWidth }}>
       <List>
         {items.map((item) => (
           <ListItem key={item.path} disablePadding>
-            <ListItemButton component={Link} to={item.path} selected={location.pathname === item.path}>
+            <ListItemButton 
+              component={Link} 
+              to={item.path} 
+              selected={location.pathname === item.path}
+              sx={{
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(32, 143, 75, 0.08)',
+                  transform: 'translateX(8px)',
+                  '& .MuiListItemText-primary': {
+                    color: 'primary.main',
+                    fontWeight: 600,
+                  },
+                  '& .MuiSvgIcon-root': {
+                    color: 'primary.main',
+                    transform: 'scale(1.1)',
+                  }
+                },
+                '&.Mui-selected': {
+                  backgroundColor: 'rgba(32, 143, 75, 0.12)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(32, 143, 75, 0.15)',
+                  }
+                }
+              }}
+            >
+              {getIconForLabel(item.label)}
               <ListItemText primary={item.label} />
             </ListItemButton>
           </ListItem>
@@ -73,7 +118,6 @@ function NavigationLayout({ items, children }: NavigationLayoutProps) {
           <Box display="flex" alignItems="center" sx={{ flexGrow: 1 }}>
             <img src={logoMarkUrl} alt="PlayMatch" style={{ height: 44, width: 'auto', marginRight: 12, display: 'block' }} />
             <Typography variant="h6" component="div" color="inherit" sx={{
-              fontFamily: 'Poppins, Montserrat, "Avenir Next", "Futura PT", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
               fontWeight: 800,
               letterSpacing: 0.6,
             }}>PLAY MATCH</Typography>

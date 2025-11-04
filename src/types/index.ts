@@ -22,8 +22,8 @@ export interface Cancha {
 export type EstadoReserva = 'pendiente' | 'confirmada' | 'cancelada';
 
 export interface Reserva {
-  id: string;
-  canchaId: string;
+  id: number;
+  canchaId: number;
   cliente: string;
   estado: EstadoReserva;
   fecha: string;

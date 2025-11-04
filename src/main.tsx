@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import App from './App';
 
-const montserratStack = 'Montserrat, Poppins, "Avenir Next", "Futura PT", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+const poppinsStack = 'Poppins, "Avenir Next", "Futura PT", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 
 const theme = createTheme({
   palette: {
@@ -18,14 +18,14 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: montserratStack,
-    h1: { fontFamily: montserratStack, fontWeight: 800 },
-    h2: { fontFamily: montserratStack, fontWeight: 800 },
-    h3: { fontFamily: montserratStack, fontWeight: 800 },
-    h4: { fontFamily: montserratStack, fontWeight: 800 },
-    h5: { fontFamily: montserratStack, fontWeight: 800 },
-    h6: { fontFamily: montserratStack, fontWeight: 800 },
-    button: { fontFamily: montserratStack, fontWeight: 700, textTransform: 'none' },
+    fontFamily: poppinsStack,
+    h1: { fontFamily: poppinsStack, fontWeight: 800 },
+    h2: { fontFamily: poppinsStack, fontWeight: 800 },
+    h3: { fontFamily: poppinsStack, fontWeight: 800 },
+    h4: { fontFamily: poppinsStack, fontWeight: 800 },
+    h5: { fontFamily: poppinsStack, fontWeight: 800 },
+    h6: { fontFamily: poppinsStack, fontWeight: 800 },
+    button: { fontFamily: poppinsStack, fontWeight: 700, textTransform: 'none' },
   },
 });
 

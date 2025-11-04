@@ -13,7 +13,7 @@ async function register(payload: {
   password: string;
   nombre: string;
   telefono: string;
-  role: 'JUGADOR' | 'DUENO';
+  role: 'JUGADOR' | 'DUENO' | 'ADMINISTRADOR_CANCHA';
 }): Promise<AuthResponse> {
   const { data } = await httpClient.post<AuthResponse>('/auth/register', payload);
   return data;
