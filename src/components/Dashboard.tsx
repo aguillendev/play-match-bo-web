@@ -128,10 +128,10 @@ const Dashboard = () => {
                   <SportsSoccerIcon sx={{ color: '#64748b', fontSize: 28 }} />
                 </Box>
               </Box>
-              <Typography variant="body2" color="text.secondary" fontWeight={500} mb={0.5}>
+              <Typography variant="caption" color="text.secondary" fontWeight={500} mb={0.5} sx={{ fontSize: '0.75rem' }}>
                 Canchas registradas
               </Typography>
-              <Typography variant="h3" fontWeight={700} color="#1e293b">
+              <Typography variant="h4" fontWeight={700} color="#1e293b" sx={{ fontSize: '1.5rem' }}>
                 {resumen.totalCanchas}
               </Typography>
             </CardContent>
@@ -166,10 +166,10 @@ const Dashboard = () => {
                   <EventIcon sx={{ color: '#059669', fontSize: 28 }} />
                 </Box>
               </Box>
-              <Typography variant="body2" color="text.secondary" fontWeight={500} mb={0.5}>
+              <Typography variant="caption" color="text.secondary" fontWeight={500} mb={0.5} sx={{ fontSize: '0.75rem' }}>
                 Reservas confirmadas
               </Typography>
-              <Typography variant="h3" fontWeight={700} color="#1e293b">
+              <Typography variant="h4" fontWeight={700} color="#1e293b" sx={{ fontSize: '1.5rem' }}>
                 {resumen.reservasConfirmadas}
               </Typography>
             </CardContent>
@@ -204,10 +204,10 @@ const Dashboard = () => {
                   <TrendingUpIcon sx={{ color: '#d97706', fontSize: 28 }} />
                 </Box>
               </Box>
-              <Typography variant="body2" color="text.secondary" fontWeight={500} mb={0.5}>
+              <Typography variant="caption" color="text.secondary" fontWeight={500} mb={0.5} sx={{ fontSize: '0.75rem' }}>
                 Reservas pendientes
               </Typography>
-              <Typography variant="h3" fontWeight={700} color="#1e293b">
+              <Typography variant="h4" fontWeight={700} color="#1e293b" sx={{ fontSize: '1.5rem' }}>
                 {resumen.reservasPendientes}
               </Typography>
             </CardContent>
@@ -242,10 +242,10 @@ const Dashboard = () => {
                   <AttachMoneyIcon sx={{ color: '#7c3aed', fontSize: 28 }} />
                 </Box>
               </Box>
-              <Typography variant="body2" color="text.secondary" fontWeight={500} mb={0.5}>
+              <Typography variant="caption" color="text.secondary" fontWeight={500} mb={0.5} sx={{ fontSize: '0.75rem' }}>
                 Ingresos confirmados
               </Typography>
-              <Typography variant="h3" fontWeight={700} color="#1e293b">
+              <Typography variant="h4" fontWeight={700} color="#1e293b" sx={{ fontSize: '1.5rem' }}>
                 ${resumen.montoConfirmado.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </Typography>
             </CardContent>
