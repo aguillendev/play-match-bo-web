@@ -24,11 +24,12 @@ import {
 } from '@mui/material';
 import { CheckCircle, Cancel } from '@mui/icons-material';
 import { useReservaStore } from '../store/useReservaStore';
+import { useCanchaStore } from '../store/useCanchaStore';
 import { EstadoReserva } from '../types';
 import { ReservaFilters } from '../services/reservaService';
 
 interface ReservasTableProps {
-  canchaId: number;
+  canchaId?: number; // Ahora es opcional
 }
 
 const estadoLabels: Record<EstadoReserva, string> = {
@@ -43,41 +44,109 @@ const colorPorEstado: Record<EstadoReserva, 'success' | 'warning' | 'default'> =
   cancelada: 'default',
 };
 
+const deporteLabels: Record<string, string> = {
+  FUTBOL: 'Fútbol',
+  PADEL: 'Pádel',
+  TENIS: 'Tenis',
+  BASQUET: 'Básquet',
+  OTRO: 'Otro',
+};
+
 type OrderBy = 'fecha' | 'hora' | 'cliente' | 'estado' | 'monto';
 
 const ReservasTable = ({ canchaId }: ReservasTableProps) => {
-  const { reservas, loading, error, fetchReservas, confirmarReserva, rechazarReserva } = useReservaStore((state) => ({
+  const { reservas, loading, error, fetchReservas, fetchReservasAdministrador, confirmarReserva, rechazarReserva } = useReservaStore((state) => ({
     reservas: state.reservas,
     loading: state.loading,
     error: state.error,
     fetchReservas: state.fetchReservas,
+    fetchReservasAdministrador: state.fetchReservasAdministrador,
     confirmarReserva: state.confirmarReserva,
     rechazarReserva: state.rechazarReserva,
   }));
+
+  const { canchas, fetchCanchas } = useCanchaStore((state) => ({
+    canchas: state.canchas,
+    fetchCanchas: state.fetchCanchas,
+  }));
   
   const [filtro, setFiltro] = useState<'todas' | EstadoReserva>('todas');
+  const [filtroCancha, setFiltroCancha] = useState<number | 'todas'>('todas');
   const [cliente, setCliente] = useState('');
-  const [fechaDesde, setFechaDesde] = useState('');
-  const [fechaHasta, setFechaHasta] = useState('');
+  const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes' | 'todas'>('dia');
   const [orderBy, setOrderBy] = useState<OrderBy>('fecha');
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
 
-  useEffect(() => {
-    if (canchaId) {
-      const filters: ReservaFilters = {
-        estado: filtro,
-        cliente: cliente || undefined,
-        fechaDesde: fechaDesde || undefined,
-        fechaHasta: fechaHasta || undefined,
-        ordenarPor: orderBy,
-        direccion: order,
-      };
-      fetchReservas(canchaId, filters);
+  // Calcular fechas según el período seleccionado
+  const calcularFechas = (periodo: 'dia' | 'semana' | 'mes' | 'todas') => {
+    const hoy = new Date();
+    let fechaDesde = '';
+    let fechaHasta = '';
+
+    if (periodo === 'dia') {
+      fechaDesde = hoy.toISOString().split('T')[0];
+      fechaHasta = hoy.toISOString().split('T')[0];
+    } else if (periodo === 'semana') {
+      const inicioSemana = new Date(hoy);
+      inicioSemana.setDate(hoy.getDate() - hoy.getDay());
+      const finSemana = new Date(inicioSemana);
+      finSemana.setDate(inicioSemana.getDate() + 6);
+      fechaDesde = inicioSemana.toISOString().split('T')[0];
+      fechaHasta = finSemana.toISOString().split('T')[0];
+    } else if (periodo === 'mes') {
+      const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      const finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+      fechaDesde = inicioMes.toISOString().split('T')[0];
+      fechaHasta = finMes.toISOString().split('T')[0];
     }
-  }, [canchaId, filtro, cliente, fechaDesde, fechaHasta, orderBy, order, fetchReservas]);
+
+    return { fechaDesde, fechaHasta };
+  };
+
+  useEffect(() => {
+    fetchCanchas();
+  }, [fetchCanchas]);
+
+  useEffect(() => {
+    // Seleccionar automáticamente la primera cancha cuando no hay canchaId y hay canchas disponibles
+    if (!canchaId && canchas.length > 0 && filtroCancha === 'todas') {
+      setFiltroCancha(canchas[0].id!);
+    }
+  }, [canchas, canchaId, filtroCancha]);
+
+  useEffect(() => {
+    const { fechaDesde, fechaHasta } = calcularFechas(periodo);
+    
+    const filters: ReservaFilters = {
+      estado: filtro,
+      cliente: cliente || undefined,
+      fechaDesde: fechaDesde || undefined,
+      fechaHasta: fechaHasta || undefined,
+      canchaId: filtroCancha !== 'todas' ? filtroCancha : canchaId,
+      ordenarPor: orderBy,
+      direccion: order,
+    };
+    
+    if (canchaId) {
+      // Si hay canchaId, mostrar reservas de esa cancha específica
+      fetchReservas(canchaId, filters);
+    } else {
+      // Si no hay canchaId, mostrar todas las reservas del administrador
+      fetchReservasAdministrador(filters);
+    }
+  }, [canchaId, filtro, filtroCancha, cliente, periodo, orderBy, order, fetchReservas, fetchReservasAdministrador]);
 
   const handleEstadoChange = (event: SelectChangeEvent) => {
     setFiltro(event.target.value as 'todas' | EstadoReserva);
+  };
+
+  const handleCanchaChange = (event: SelectChangeEvent) => {
+    const value = event.target.value;
+    setFiltroCancha(value === 'todas' ? 'todas' : Number(value));
+  };
+
+  const handlePeriodoChange = (event: SelectChangeEvent) => {
+    setPeriodo(event.target.value as 'dia' | 'semana' | 'mes' | 'todas');
   };
 
   const handleRequestSort = (property: OrderBy) => {
@@ -105,7 +174,7 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Reservas de la cancha
+        {canchaId ? 'Reservas de la cancha' : 'Todas las reservas'}
       </Typography>
       <Card>
         <CardContent>
@@ -121,6 +190,21 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
                 </Select>
               </FormControl>
             </Grid>
+            {!canchaId && (
+              <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth>
+                  <InputLabel>Cancha</InputLabel>
+                  <Select value={filtroCancha.toString()} label="Cancha" onChange={handleCanchaChange}>
+                    <MenuItem value="todas">Todas las canchas</MenuItem>
+                    {canchas.map((cancha) => (
+                      <MenuItem key={cancha.id} value={cancha.id.toString()}>
+                        {cancha.nombre} ({deporteLabels[cancha.tipo] || cancha.tipo})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth
@@ -131,24 +215,15 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                label="Fecha desde"
-                type="date"
-                value={fechaDesde}
-                onChange={(e) => setFechaDesde(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                fullWidth
-                label="Fecha hasta"
-                type="date"
-                value={fechaHasta}
-                onChange={(e) => setFechaHasta(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-              />
+              <FormControl fullWidth>
+                <InputLabel>Período</InputLabel>
+                <Select value={periodo} label="Período" onChange={handlePeriodoChange}>
+                  <MenuItem value="todas">Todas las fechas</MenuItem>
+                  <MenuItem value="dia">Hoy</MenuItem>
+                  <MenuItem value="semana">Esta semana</MenuItem>
+                  <MenuItem value="mes">Este mes</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
           
@@ -166,6 +241,7 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
             <Table>
               <TableHead>
                 <TableRow>
+                  <TableCell>Cancha</TableCell>
                   <TableCell>
                     <TableSortLabel
                       active={orderBy === 'cliente'}
@@ -217,6 +293,18 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
               <TableBody>
                 {reservas.map((reserva) => (
                   <TableRow key={reserva.id} hover>
+                    <TableCell>
+                      <Box>
+                        <Typography variant="body2" fontWeight={600}>
+                          {reserva.canchaNombre || `Cancha ${reserva.canchaId}`}
+                        </Typography>
+                        {reserva.canchaDeporte && (
+                          <Typography variant="caption" color="text.secondary">
+                            {deporteLabels[reserva.canchaDeporte] || reserva.canchaDeporte}
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
                     <TableCell>{reserva.cliente}</TableCell>
                     <TableCell>{new Date(reserva.fecha).toLocaleDateString()}</TableCell>
                     <TableCell>

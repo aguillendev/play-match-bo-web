@@ -8,6 +8,7 @@ type ReservaState = {
   loading: boolean;
   error?: string;
   fetchReservas: (canchaId: number, filters?: ReservaFilters) => Promise<void>;
+  fetchReservasAdministrador: (filters?: ReservaFilters) => Promise<void>;
   confirmarReserva: (reservaId: number) => Promise<void>;
   rechazarReserva: (reservaId: number) => Promise<void>;
 };
@@ -27,6 +28,24 @@ export const useReservaStore = create<ReservaState>()(
         
         if (error?.response?.status === 404) {
           errorMsg = 'La cancha no existe o no tiene reservas registradas';
+        } else if (error?.response?.data?.message) {
+          errorMsg = error.response.data.message;
+        }
+        
+        set({ reservas: [], loading: false, error: errorMsg });
+      }
+    },
+    async fetchReservasAdministrador(filters) {
+      set({ loading: true, error: undefined });
+      try {
+        const reservas = await reservaService.listarDelAdministrador(filters);
+        set({ reservas, loading: false });
+      } catch (error: any) {
+        console.error(error);
+        let errorMsg = 'No se pudieron obtener las reservas';
+        
+        if (error?.response?.status === 404) {
+          errorMsg = 'No tiene canchas registradas o no hay reservas';
         } else if (error?.response?.data?.message) {
           errorMsg = error.response.data.message;
         }

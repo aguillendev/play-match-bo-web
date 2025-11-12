@@ -37,10 +37,10 @@ const Dashboard = () => {
     fetchCanchas: state.fetchCanchas,
     selectedId: state.selectedId,
   }));
-  const { reservas, loading: loadingReservas, fetchReservas } = useReservaStore((state) => ({
+  const { reservas, loading: loadingReservas, fetchReservasAdministrador } = useReservaStore((state) => ({
     reservas: state.reservas,
     loading: state.loading,
-    fetchReservas: state.fetchReservas,
+    fetchReservasAdministrador: state.fetchReservasAdministrador,
   }));
   const { reporte, loading: loadingReporte, fetchReporte } = useReporteStore((state) => ({
     reporte: state.reporte,
@@ -50,14 +50,14 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchCanchas();
-  }, [fetchCanchas]);
+    fetchReservasAdministrador(); // Cargar todas las reservas del administrador
+  }, [fetchCanchas, fetchReservasAdministrador]);
 
   useEffect(() => {
     if (selectedId) {
-      fetchReservas(selectedId);
       fetchReporte(selectedId, 'semana');
     }
-  }, [selectedId, fetchReservas, fetchReporte]);
+  }, [selectedId, fetchReporte]);
 
   const canchaActiva = useMemo(() => canchas.find((c) => c.id === selectedId), [canchas, selectedId]);
 

@@ -5,7 +5,8 @@ import CanchaForm from './components/CanchaForm';
 import HorariosManager from './components/HorariosManager';
 import ReportesView from './components/ReportesView';
 import ReservasTable from './components/ReservasTable';
-import PerfilDueno from './components/PerfilDueno';
+import CalendarioReservas from './components/CalendarioReservas';
+import PerfilAdministradorCancha from './components/PerfilAdministradorCancha';
 import NavigationLayout, { NavItem } from './components/NavigationLayout';
 import { useCanchaStore } from './store/useCanchaStore';
 import { useAuthStore } from './store/useAuthStore';
@@ -24,6 +25,7 @@ function App() {
     () => [
       { label: 'Dashboard', path: '/dashboard' },
       { label: 'Canchas', path: '/canchas' },
+      { label: 'Calendario', path: '/calendario' },
       { label: 'Reservas', path: '/reservas' },
       { label: 'Reportes', path: '/reportes' },
     ],
@@ -48,8 +50,10 @@ function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/canchas" element={<CanchaForm />} />
-              <Route path="/reservas" element={<ReservasTable canchaId={activeCanchaId} />} />
+              <Route path="/calendario" element={<CalendarioReservas />} />
+              <Route path="/reservas" element={<ReservasTable />} />
               <Route path="/reportes" element={<ReportesView canchaId={activeCanchaId} />} />
+              <Route path="/perfil" element={<PerfilAdministradorCancha />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </NavigationLayout>

@@ -24,6 +24,8 @@ export type EstadoReserva = 'pendiente' | 'confirmada' | 'cancelada';
 export interface Reserva {
   id: number;
   canchaId: number;
+  canchaNombre?: string;
+  canchaDeporte?: string;
   cliente: string;
   estado: EstadoReserva;
   fecha: string;
@@ -40,7 +42,7 @@ export interface ReporteUso {
   series: Array<{ etiqueta: string; reservas: number; recaudacion: number }>;
 }
 
-export interface DuenoPerfil {
+export interface AdministradorCanchaPerfil {
   id: string;
   nombre: string;
   email: string;

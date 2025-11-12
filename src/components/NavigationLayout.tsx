@@ -20,6 +20,7 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import EventIcon from '@mui/icons-material/Event';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import { Menu, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -57,6 +58,8 @@ function NavigationLayout({ items, children }: NavigationLayoutProps) {
         return <DashboardIcon sx={{ mr: 2 }} />;
       case 'Canchas':
         return <SportsSoccerIcon sx={{ mr: 2 }} />;
+      case 'Calendario':
+        return <CalendarMonthIcon sx={{ mr: 2 }} />;
       case 'Reservas':
         return <EventIcon sx={{ mr: 2 }} />;
       case 'Reportes':
