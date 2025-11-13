@@ -108,13 +108,6 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
   }, [fetchCanchas]);
 
   useEffect(() => {
-    // Seleccionar automáticamente la primera cancha cuando no hay canchaId y hay canchas disponibles
-    if (!canchaId && canchas.length > 0 && filtroCancha === 'todas') {
-      setFiltroCancha(canchas[0].id!);
-    }
-  }, [canchas, canchaId, filtroCancha]);
-
-  useEffect(() => {
     const { fechaDesde, fechaHasta } = calcularFechas(periodo);
     
     const filters: ReservaFilters = {
