@@ -536,16 +536,30 @@ const CalendarioReservas = () => {
         <CardContent sx={{ p: 3 }}>
           <Box 
             sx={{ 
-              p: 2, 
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              pb: 2,
               mb: 3,
-              background: 'linear-gradient(135deg, #1a7a3f 0%, #208f4b 100%)',
-              borderRadius: 2,
-              color: 'white',
+              borderBottom: '2px solid #208f4b',
             }}
           >
-            <Typography variant="h6" fontWeight={600} fontSize="1rem">
-              {canchaActual.nombre} - {deporteLabels[canchaActual.tipo] || canchaActual.tipo}
-            </Typography>
+            <Box
+              sx={{
+                width: 8,
+                height: 40,
+                backgroundColor: '#208f4b',
+                borderRadius: 1,
+              }}
+            />
+            <Box>
+              <Typography variant="h6" fontWeight={700} fontSize="1.25rem" color="#1e293b">
+                {canchaActual.nombre}
+              </Typography>
+              <Typography variant="body2" color="#64748b" fontSize="0.875rem">
+                {deporteLabels[canchaActual.tipo] || canchaActual.tipo}
+              </Typography>
+            </Box>
           </Box>
 
           <Box sx={{ overflowX: 'auto' }}>
