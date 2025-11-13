@@ -70,6 +70,12 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
     fetchCanchas: state.fetchCanchas,
   }));
   
+  // Función para formatear fecha sin problemas de zona horaria
+  const formatearFecha = (fechaStr: string): string => {
+    const [year, month, day] = fechaStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
+  
   const [filtro, setFiltro] = useState<'todas' | EstadoReserva>('todas');
   const [filtroCancha, setFiltroCancha] = useState<number | 'todas'>('todas');
   const [cliente, setCliente] = useState('');
@@ -299,7 +305,7 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
                       </Box>
                     </TableCell>
                     <TableCell>{reserva.cliente}</TableCell>
-                    <TableCell>{new Date(reserva.fecha).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatearFecha(reserva.fecha)}</TableCell>
                     <TableCell>
                       {reserva.horaInicio} - {reserva.horaFin}
                     </TableCell>
