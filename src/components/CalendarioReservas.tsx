@@ -14,10 +14,17 @@ import {
   CircularProgress,
   Chip,
   Tooltip,
+  ToggleButton,
+  ToggleButtonGroup,
+  IconButton,
 } from '@mui/material';
 import { useCanchaStore } from '../store/useCanchaStore';
 import { useReservaStore } from '../store/useReservaStore';
 import { Reserva } from '../types';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import DateRangeIcon from '@mui/icons-material/DateRange';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 // Formatea una fecha local a YYYY-MM-DD (evita desfases por zona horaria)
 const toLocalDateStr = (date: Date) => {
@@ -52,6 +59,7 @@ const CalendarioReservas = () => {
 
   const [canchaSeleccionada, setCanchaSeleccionada] = useState<number | null>(null);
   const [semanaOffset, setSemanaOffset] = useState(0); // 0 = semana actual, 1 = siguiente, -1 = anterior
+  const [vistaCalendario, setVistaCalendario] = useState<'dia' | 'semana'>('dia'); // Vista por día por defecto
 
   useEffect(() => {
     fetchCanchas();
@@ -65,10 +73,20 @@ const CalendarioReservas = () => {
   }, [canchas, canchaSeleccionada]);
 
   useEffect(() => {
-    // Calcular fechas de la semana para cargar solo las reservas de ese período
-    const dias = calcularSemana(semanaOffset);
-    const fechaDesde = toLocalDateStr(dias[0]);
-    const fechaHasta = toLocalDateStr(dias[6]);
+    // Calcular fechas según la vista
+    let fechaDesde: string;
+    let fechaHasta: string;
+    
+    if (vistaCalendario === 'dia') {
+      const hoy = new Date();
+      hoy.setDate(hoy.getDate() + semanaOffset);
+      fechaDesde = toLocalDateStr(hoy);
+      fechaHasta = toLocalDateStr(hoy);
+    } else {
+      const dias = calcularSemana(semanaOffset);
+      fechaDesde = toLocalDateStr(dias[0]);
+      fechaHasta = toLocalDateStr(dias[6]);
+    }
 
     // Cargar reservas del período
     fetchReservasAdministrador({
@@ -77,11 +95,18 @@ const CalendarioReservas = () => {
       fechaHasta,
       canchaId: canchaSeleccionada || undefined,
     });
-  }, [fetchReservasAdministrador, semanaOffset, canchaSeleccionada]);
+  }, [fetchReservasAdministrador, semanaOffset, canchaSeleccionada, vistaCalendario]);
 
   const handleCanchaChange = (event: SelectChangeEvent) => {
     const value = event.target.value;
     setCanchaSeleccionada(Number(value));
+  };
+
+  const handleVistaChange = (_: unknown, nuevaVista: 'dia' | 'semana' | null) => {
+    if (nuevaVista) {
+      setVistaCalendario(nuevaVista);
+      setSemanaOffset(0); // Resetear al día/semana actual
+    }
   };
 
   // Calcular fechas de la semana (de lunes a domingo)
@@ -211,15 +236,17 @@ const CalendarioReservas = () => {
       return (
         <Box
           sx={{
-            height: 40,
-            border: '1px solid #e0e0e0',
-            backgroundColor: '#f5f5f5',
+            height: 50,
+            border: '1px solid #e5e7eb',
+            borderTop: 'none',
+            borderLeft: 'none',
+            backgroundColor: '#f8fafc',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Typography variant="caption" color="text.disabled" fontSize="0.65rem">
+          <Typography variant="caption" color="#94a3b8" fontSize="0.65rem">
             -
           </Typography>
         </Box>
@@ -228,15 +255,21 @@ const CalendarioReservas = () => {
 
     if (reserva) {
       const color = reserva.estado === 'confirmada' 
-        ? '#4caf50' 
+        ? '#208f4b' 
         : reserva.estado === 'pendiente' 
         ? '#ff9800' 
         : '#9e9e9e';
+      
+      const bgColor = reserva.estado === 'confirmada'
+        ? 'rgba(32, 143, 75, 0.1)'
+        : reserva.estado === 'pendiente'
+        ? '#fff7ed'
+        : '#f5f5f5';
 
       // Si el porcentaje es menor a 100%, crear un gradiente
       const backgroundStyle = porcentaje < 100 
-        ? `linear-gradient(to bottom, ${color}20 0%, ${color}20 ${porcentaje}%, white ${porcentaje}%, white 100%)`
-        : `${color}20`;
+        ? `linear-gradient(to bottom, ${bgColor} 0%, ${bgColor} ${porcentaje}%, white ${porcentaje}%, white 100%)`
+        : bgColor;
 
       return (
         <Tooltip 
@@ -253,43 +286,49 @@ const CalendarioReservas = () => {
         >
           <Box
             sx={{
-              height: 60,
+              height: 50,
               background: backgroundStyle,
-              border: `2px solid ${color}`,
+              border: '1px solid #e5e7eb',
+              borderTop: 'none',
+              borderLeft: 'none',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'flex-start',
-              paddingTop: '4px',
+              justifyContent: 'center',
+              gap: 0.5,
               cursor: 'pointer',
               transition: 'all 0.2s',
-              position: 'relative',
               '&:hover': {
-                opacity: 0.9,
-                transform: 'scale(1.01)',
+                boxShadow: `0 2px 8px ${color}40`,
+                transform: 'scale(1.02)',
+                zIndex: 10,
+                borderColor: color,
               },
             }}
           >
             {esInicio && (
               <>
-                <Typography variant="caption" fontWeight={600} sx={{ color, fontSize: '0.7rem' }}>
+                <Typography variant="caption" fontWeight={600} sx={{ fontSize: '0.7rem', color: reserva.estado === 'confirmada' ? '#208f4b' : '#1e293b' }}>
                   {reserva.cliente?.split(' ')[0]}
                 </Typography>
                 <Chip
                   label={reserva.estado === 'confirmada' ? 'Conf.' : 'Pend.'}
                   size="small"
                   sx={{
-                    height: 18,
+                    height: 16,
                     fontSize: '0.6rem',
                     backgroundColor: color,
                     color: 'white',
-                    marginTop: '2px',
+                    fontWeight: 600,
+                    '& .MuiChip-label': {
+                      px: 1,
+                    }
                   }}
                 />
               </>
             )}
             {!esInicio && porcentaje === 100 && (
-              <Typography variant="caption" sx={{ color, fontSize: '0.7rem', marginTop: '8px' }}>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
                 ↓
               </Typography>
             )}
@@ -301,8 +340,10 @@ const CalendarioReservas = () => {
     return (
       <Box
         sx={{
-          height: 60,
-          border: '1px solid #e0e0e0',
+          height: 50,
+          border: '1px solid #e5e7eb',
+          borderTop: 'none',
+          borderLeft: 'none',
           backgroundColor: 'white',
           display: 'flex',
           alignItems: 'center',
@@ -310,11 +351,12 @@ const CalendarioReservas = () => {
           transition: 'all 0.2s',
           '&:hover': {
             backgroundColor: '#f0f9ff',
-            borderColor: '#2196f3',
+            borderColor: 'primary.light',
+            cursor: 'pointer',
           },
         }}
       >
-        <Typography variant="caption" color="text.secondary" fontSize="0.7rem">
+        <Typography variant="caption" color="#94a3b8" fontSize="0.7rem" fontWeight={500}>
           Libre
         </Typography>
       </Box>
@@ -373,15 +415,66 @@ const CalendarioReservas = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Calendario de Reservas
-      </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" gutterBottom fontWeight={600} color="#1e293b">
+          Calendario de Reservas
+        </Typography>
+        
+        {/* Toggle para cambiar entre vista día y semana */}
+        <ToggleButtonGroup
+          color="primary"
+          value={vistaCalendario}
+          exclusive
+          onChange={handleVistaChange}
+          size="small"
+          sx={{
+            '& .MuiToggleButton-root': {
+              px: 2,
+              py: 0.5,
+              fontWeight: 500,
+              fontSize: '0.875rem',
+              borderColor: '#208f4b',
+              color: '#208f4b',
+              textTransform: 'none',
+              '&.Mui-selected': {
+                backgroundColor: '#208f4b',
+                color: 'white',
+                borderColor: '#208f4b',
+                '&:hover': {
+                  backgroundColor: '#1a7a3f',
+                }
+              },
+              '&:hover': {
+                backgroundColor: 'rgba(32, 143, 75, 0.08)',
+              }
+            }
+          }}
+        >
+          <ToggleButton value="dia">
+            <CalendarTodayIcon sx={{ mr: 0.5, fontSize: 16 }} />
+            Día
+          </ToggleButton>
+          <ToggleButton value="semana">
+            <DateRangeIcon sx={{ mr: 0.5, fontSize: 16 }} />
+            Semana
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
 
       <Grid container spacing={2} mb={3}>
         <Grid item xs={12} sm={6} md={4}>
-          <FormControl fullWidth>
-            <InputLabel>Cancha</InputLabel>
-            <Select value={canchaSeleccionada?.toString() || ''} label="Cancha" onChange={handleCanchaChange}>
+          <FormControl fullWidth size="small">
+            <InputLabel sx={{ '&.Mui-focused': { color: '#208f4b' } }}>Cancha</InputLabel>
+            <Select 
+              value={canchaSeleccionada?.toString() || ''} 
+              label="Cancha" 
+              onChange={handleCanchaChange}
+              sx={{
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#208f4b',
+                }
+              }}
+            >
               {canchas.map((cancha) => (
                 <MenuItem key={cancha.id} value={cancha.id!.toString()}>
                   {cancha.nombre} ({deporteLabels[cancha.tipo] || cancha.tipo})
@@ -392,115 +485,175 @@ const CalendarioReservas = () => {
         </Grid>
         <Grid item xs={12} sm={6} md={4}>
           <Box display="flex" gap={1} alignItems="center" height="100%">
-            <button
+            <IconButton
               onClick={() => setSemanaOffset(semanaOffset - 1)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#1976d2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(32, 143, 75, 0.08)',
+                border: '1px solid #208f4b',
+                color: '#208f4b',
+                '&:hover': {
+                  backgroundColor: '#208f4b',
+                  color: 'white',
+                },
               }}
             >
-              ← Anterior
-            </button>
-            <Typography variant="body1" sx={{ minWidth: '120px', textAlign: 'center' }}>
-              {semanaOffset === 0 ? 'Esta semana' : semanaOffset > 0 ? `+${semanaOffset} semana` : `${semanaOffset} semana`}
+              <ChevronLeftIcon fontSize="small" />
+            </IconButton>
+            <Typography variant="body2" sx={{ minWidth: '120px', textAlign: 'center', fontWeight: 500, color: '#475569' }}>
+              {vistaCalendario === 'dia' 
+                ? (semanaOffset === 0 ? 'Hoy' : `${semanaOffset > 0 ? '+' : ''}${semanaOffset} ${Math.abs(semanaOffset) === 1 ? 'día' : 'días'}`)
+                : (semanaOffset === 0 ? 'Esta semana' : `${semanaOffset > 0 ? '+' : ''}${semanaOffset} ${Math.abs(semanaOffset) === 1 ? 'semana' : 'semanas'}`)
+              }
             </Typography>
-            <button
+            <IconButton
               onClick={() => setSemanaOffset(semanaOffset + 1)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#1976d2',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(32, 143, 75, 0.08)',
+                border: '1px solid #208f4b',
+                color: '#208f4b',
+                '&:hover': {
+                  backgroundColor: '#208f4b',
+                  color: 'white',
+                },
               }}
             >
-              Siguiente →
-            </button>
+              <ChevronRightIcon fontSize="small" />
+            </IconButton>
           </Box>
         </Grid>
       </Grid>
 
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            {canchaActual.nombre} - {deporteLabels[canchaActual.tipo] || canchaActual.tipo}
-          </Typography>
+      <Card 
+        sx={{ 
+          mb: 3,
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          borderRadius: 2,
+        }}
+      >
+        <CardContent sx={{ p: 3 }}>
+          <Box 
+            sx={{ 
+              p: 2, 
+              mb: 3,
+              background: 'linear-gradient(135deg, #1a7a3f 0%, #208f4b 100%)',
+              borderRadius: 2,
+              color: 'white',
+            }}
+          >
+            <Typography variant="h6" fontWeight={600} fontSize="1rem">
+              {canchaActual.nombre} - {deporteLabels[canchaActual.tipo] || canchaActual.tipo}
+            </Typography>
+          </Box>
 
           <Box sx={{ overflowX: 'auto' }}>
-            <Box sx={{ minWidth: '900px' }}>
+            <Box sx={{ minWidth: vistaCalendario === 'dia' ? '600px' : '900px' }}>
               {/* Encabezado con días */}
               <Grid container>
-                  <Grid item xs={1}>
+                  <Grid item xs={vistaCalendario === 'dia' ? 2 : 1}>
                     <Box
                       sx={{
-                        height: 60,
+                        height: 50,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        backgroundColor: '#f5f5f5',
+                        background: 'linear-gradient(135deg, rgba(32, 143, 75, 0.08) 0%, rgba(32, 143, 75, 0.12) 100%)',
                         fontWeight: 600,
-                        border: '1px solid #e0e0e0',
+                        border: '1px solid rgba(32, 143, 75, 0.2)',
+                        borderTopLeftRadius: 8,
                       }}
                     >
-                      <Typography variant="body2" fontWeight={600}>
-                        Hora
+                      <Typography variant="body2" fontWeight={600} color="#208f4b" fontSize="0.8rem">
+                        Horario
                       </Typography>
                     </Box>
                   </Grid>
-                  {diasDeSemana.map((dia, index) => (
-                    <Grid item xs={1.571} key={index}>
+                  {vistaCalendario === 'semana' ? (
+                    diasDeSemana.map((dia, index) => (
+                      <Grid item xs key={index}>
+                        <Box
+                          sx={{
+                            height: 50,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'linear-gradient(135deg, rgba(32, 143, 75, 0.08) 0%, rgba(32, 143, 75, 0.12) 100%)',
+                            fontWeight: 600,
+                            border: '1px solid rgba(32, 143, 75, 0.2)',
+                            borderLeft: 'none',
+                            borderTopRightRadius: index === 6 ? 8 : 0,
+                          }}
+                        >
+                          <Typography variant="caption" fontWeight={600} color="#208f4b" fontSize="0.7rem">
+                            {getNombreDia(dia)}
+                          </Typography>
+                          <Typography variant="body2" fontWeight={600} color="#208f4b" fontSize="0.75rem">
+                            {formatearFecha(dia)}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    ))
+                  ) : (
+                    <Grid item xs={10}>
                       <Box
                         sx={{
-                          height: 60,
+                          height: 50,
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: '#1976d2',
-                          color: 'white',
-                          border: '1px solid #1565c0',
+                          background: 'linear-gradient(135deg, rgba(32, 143, 75, 0.08) 0%, rgba(32, 143, 75, 0.12) 100%)',
+                          fontWeight: 600,
+                          border: '1px solid rgba(32, 143, 75, 0.2)',
+                          borderLeft: 'none',
+                          borderTopRightRadius: 8,
                         }}
                       >
-                        <Typography variant="caption" fontWeight={600}>
-                          {getNombreDia(dia)}
+                        <Typography variant="caption" fontWeight={600} color="#208f4b" fontSize="0.7rem">
+                          {getNombreDia(diasDeSemana[semanaOffset])}
                         </Typography>
-                        <Typography variant="body2" fontWeight={600}>
-                          {formatearFecha(dia)}
+                        <Typography variant="body2" fontWeight={600} color="#208f4b" fontSize="0.75rem">
+                          {formatearFecha(diasDeSemana[semanaOffset])}
                         </Typography>
                       </Box>
                     </Grid>
-                  ))}
+                  )}
                 </Grid>
 
                 {/* Filas de horarios */}
                 {horarios.map((hora) => (
                   <Grid container key={hora}>
-                    <Grid item xs={1}>
+                    <Grid item xs={vistaCalendario === 'dia' ? 2 : 1}>
                       <Box
                         sx={{
-                          height: 60,
+                          height: 50,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: '#f5f5f5',
-                          border: '1px solid #e0e0e0',
+                          backgroundColor: '#f8fafc',
+                          border: '1px solid #e5e7eb',
+                          borderTop: 'none',
                         }}
                       >
-                        <Typography variant="body2" fontWeight={600} fontSize="0.85rem">
+                        <Typography variant="body2" fontWeight={500} fontSize="0.8rem" color="#64748b">
                           {hora}
                         </Typography>
                       </Box>
                     </Grid>
-                    {diasDeSemana.map((dia, index) => (
-                      <Grid item xs={1.571} key={index}>
-                        {renderCelda(dia, hora, canchaActual.id!, canchaActual)}
+                    {vistaCalendario === 'semana' ? (
+                      diasDeSemana.map((dia, index) => (
+                        <Grid item xs key={index}>
+                          {renderCelda(dia, hora, canchaActual.id!, canchaActual)}
+                        </Grid>
+                      ))
+                    ) : (
+                      <Grid item xs={10}>
+                        {renderCelda(diasDeSemana[semanaOffset], hora, canchaActual.id!, canchaActual)}
                       </Grid>
-                    ))}
+                    )}
                   </Grid>
                 ))}
               </Box>
@@ -509,27 +662,33 @@ const CalendarioReservas = () => {
         </Card>
 
       {/* Leyenda */}
-      <Card>
+      <Card 
+        sx={{ 
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          borderRadius: 2,
+        }}
+      >
         <CardContent>
-          <Typography variant="subtitle2" gutterBottom>
-            Leyenda:
+          <Typography variant="subtitle2" gutterBottom fontWeight={600} color="#208f4b" fontSize="0.8rem" textTransform="uppercase" letterSpacing="0.5px">
+            Leyenda
           </Typography>
-          <Box display="flex" gap={2} flexWrap="wrap">
+          <Box display="flex" gap={3} flexWrap="wrap" mt={2}>
             <Box display="flex" alignItems="center" gap={1}>
-              <Box sx={{ width: 20, height: 20, backgroundColor: '#4caf5020', border: '2px solid #4caf50' }} />
-              <Typography variant="body2">Confirmada</Typography>
+              <Box sx={{ width: 16, height: 16, backgroundColor: 'rgba(32, 143, 75, 0.1)', border: '2px solid #208f4b', borderRadius: 0.5 }} />
+              <Typography variant="body2" fontSize="0.875rem" color="#475569">Confirmada</Typography>
             </Box>
             <Box display="flex" alignItems="center" gap={1}>
-              <Box sx={{ width: 20, height: 20, backgroundColor: '#ff980020', border: '2px solid #ff9800' }} />
-              <Typography variant="body2">Pendiente</Typography>
+              <Box sx={{ width: 16, height: 16, backgroundColor: '#fff7ed', border: '2px solid #ff9800', borderRadius: 0.5 }} />
+              <Typography variant="body2" fontSize="0.875rem" color="#475569">Pendiente</Typography>
             </Box>
             <Box display="flex" alignItems="center" gap={1}>
-              <Box sx={{ width: 20, height: 20, backgroundColor: 'white', border: '1px solid #e0e0e0' }} />
-              <Typography variant="body2">Libre</Typography>
+              <Box sx={{ width: 16, height: 16, backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: 0.5 }} />
+              <Typography variant="body2" fontSize="0.875rem" color="#475569">Libre</Typography>
             </Box>
             <Box display="flex" alignItems="center" gap={1}>
-              <Box sx={{ width: 20, height: 20, backgroundColor: '#f5f5f5', border: '1px solid #e0e0e0' }} />
-              <Typography variant="body2">No disponible</Typography>
+              <Box sx={{ width: 16, height: 16, backgroundColor: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 0.5 }} />
+              <Typography variant="body2" fontSize="0.875rem" color="#475569">No disponible</Typography>
             </Box>
           </Box>
         </CardContent>
