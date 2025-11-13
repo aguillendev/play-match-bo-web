@@ -8,6 +8,19 @@ export const httpClient = axios.create({
   timeout: 10000,
 });
 
+// Helper para decodificar el token JWT y extraer el userId
+export const getUserIdFromToken = (): number | null => {
+  try {
+    const token = localStorage.getItem('pm_token');
+    if (!token) return null;
+    
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.userId || payload.sub || null;
+  } catch {
+    return null;
+  }
+};
+
 // Attach Authorization header if token exists
 httpClient.interceptors.request.use((config) => {
   try {

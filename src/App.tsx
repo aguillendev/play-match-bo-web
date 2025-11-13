@@ -52,7 +52,7 @@ function App() {
               <Route path="/canchas" element={<CanchaForm />} />
               <Route path="/calendario" element={<CalendarioReservas />} />
               <Route path="/reservas" element={<ReservasTable />} />
-              <Route path="/reportes" element={<ReportesView canchaId={activeCanchaId} />} />
+              <Route path="/reportes" element={<ReportesView />} />
               <Route path="/perfil" element={<PerfilAdministradorCancha />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>

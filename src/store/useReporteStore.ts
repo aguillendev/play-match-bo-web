@@ -8,6 +8,7 @@ type ReporteState = {
   loading: boolean;
   error?: string;
   fetchReporte: (canchaId: number, periodo: ReporteUso['periodo']) => Promise<void>;
+  fetchReporteGeneral: (periodo: ReporteUso['periodo']) => Promise<void>;
 };
 
 export const useReporteStore = create<ReporteState>()(
@@ -22,6 +23,16 @@ export const useReporteStore = create<ReporteState>()(
       } catch (error) {
         console.error(error);
         set({ loading: false, error: 'No se pudo generar el reporte' });
+      }
+    },
+    async fetchReporteGeneral(periodo) {
+      set({ loading: true, error: undefined });
+      try {
+        const reporte = await reporteService.obtenerGeneral(periodo);
+        set({ reporte, loading: false });
+      } catch (error) {
+        console.error(error);
+        set({ loading: false, error: 'No se pudo generar el reporte general' });
       }
     },
   })),

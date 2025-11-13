@@ -10,6 +10,11 @@ import {
   Grid,
   Paper,
   useTheme,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from '@mui/material';
 import {
   Bar,
@@ -26,6 +31,7 @@ import {
   Area,
 } from 'recharts';
 import { useReporteStore } from '../store/useReporteStore';
+import { useCanchaStore } from '../store/useCanchaStore';
 import { ReporteUso } from '../types';
 import EventIcon from '@mui/icons-material/Event';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -35,23 +41,55 @@ import DateRangeIcon from '@mui/icons-material/DateRange';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 interface ReportesViewProps {
-  canchaId: number;
+  canchaId?: number; // Ahora es opcional
 }
+
+const deporteLabels: Record<string, string> = {
+  FUTBOL: 'Fútbol',
+  PADEL: 'Pádel',
+  TENIS: 'Tenis',
+  BASQUET: 'Básquet',
+  OTRO: 'Otro',
+};
 
 const ReportesView = ({ canchaId }: ReportesViewProps) => {
   const theme = useTheme();
-  const { reporte, loading, fetchReporte } = useReporteStore((state) => ({
+  const { reporte, loading, fetchReporte, fetchReporteGeneral } = useReporteStore((state) => ({
     reporte: state.reporte,
     loading: state.loading,
     fetchReporte: state.fetchReporte,
+    fetchReporteGeneral: state.fetchReporteGeneral,
   }));
+  
+  const { canchas, fetchCanchas } = useCanchaStore((state) => ({
+    canchas: state.canchas,
+    fetchCanchas: state.fetchCanchas,
+  }));
+  
   const [periodo, setPeriodo] = useState<ReporteUso['periodo']>('mes');
+  const [canchaSeleccionada, setCanchaSeleccionada] = useState<number | 'todas'>('todas');
+
+  useEffect(() => {
+    fetchCanchas();
+  }, [fetchCanchas]);
 
   useEffect(() => {
     if (canchaId) {
+      // Si viene canchaId del prop, usarlo
       fetchReporte(canchaId, periodo);
+    } else if (canchaSeleccionada === 'todas') {
+      // Si seleccionó "todas", obtener reporte general
+      fetchReporteGeneral(periodo);
+    } else {
+      // Si seleccionó una cancha específica
+      fetchReporte(canchaSeleccionada as number, periodo);
     }
-  }, [canchaId, periodo, fetchReporte]);
+  }, [canchaId, canchaSeleccionada, periodo, fetchReporte, fetchReporteGeneral]);
+
+  const handleCanchaChange = (event: SelectChangeEvent) => {
+    const value = event.target.value;
+    setCanchaSeleccionada(value === 'todas' ? 'todas' : Number(value));
+  };
 
   const resumen = useMemo(() => {
     if (!reporte) return null;
@@ -83,7 +121,26 @@ const ReportesView = ({ canchaId }: ReportesViewProps) => {
         <Typography variant="h4" fontWeight={600}>
           Reportes de uso y recaudación
         </Typography>
-        <ToggleButtonGroup 
+        <Box display="flex" gap={2} alignItems="center">
+          {!canchaId && (
+            <FormControl sx={{ minWidth: 200 }}>
+              <InputLabel>Cancha</InputLabel>
+              <Select 
+                value={canchaSeleccionada.toString()} 
+                label="Cancha" 
+                onChange={handleCanchaChange}
+                size="small"
+              >
+                <MenuItem value="todas">Todas las canchas</MenuItem>
+                {canchas.map((cancha) => (
+                  <MenuItem key={cancha.id} value={cancha.id!.toString()}>
+                    {cancha.nombre} ({deporteLabels[cancha.tipo] || cancha.tipo})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+          <ToggleButtonGroup 
           color="primary" 
           value={periodo} 
           exclusive 
@@ -116,6 +173,7 @@ const ReportesView = ({ canchaId }: ReportesViewProps) => {
             Mes
           </ToggleButton>
         </ToggleButtonGroup>
+        </Box>
       </Box>
 
       {loading && <Typography>Cargando reporte...</Typography>}
