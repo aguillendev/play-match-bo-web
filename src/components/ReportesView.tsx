@@ -310,7 +310,7 @@ const ReportesView = ({ canchaId }: ReportesViewProps) => {
               </Box>
               <Box sx={{ height: 400, mt: 2 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={reporte.series} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <ComposedChart data={reporte.series} margin={{ top: 10, right: 60, left: 10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorReservasReporte" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#0d9488" stopOpacity={0.3} />
@@ -333,6 +333,7 @@ const ReportesView = ({ canchaId }: ReportesViewProps) => {
                       axisLine={false}
                       tickLine={false}
                       tick={{ fill: '#666', fontSize: 12 }}
+                      width={50}
                       label={{ value: 'Reservas', angle: -90, position: 'insideLeft', style: { fill: '#0d9488', fontWeight: 600 } }}
                     />
                     <YAxis 
@@ -341,6 +342,7 @@ const ReportesView = ({ canchaId }: ReportesViewProps) => {
                       axisLine={false}
                       tickLine={false}
                       tick={{ fill: '#666', fontSize: 12 }}
+                      width={70}
                       label={{ value: 'Recaudación (ARS)', angle: 90, position: 'insideRight', style: { fill: '#f97316', fontWeight: 600 } }}
                     />
                     <Tooltip 

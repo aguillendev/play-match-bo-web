@@ -267,7 +267,7 @@ const Dashboard = () => {
               {reporte?.series && (
                 <Box sx={{ height: 320, mt: 2 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={reporte.series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <BarChart data={reporte.series} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorReservasBar" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="#0d9488" stopOpacity={1} />
@@ -285,6 +285,7 @@ const Dashboard = () => {
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: '#666', fontSize: 12 }}
+                        width={50}
                       />
                       <Tooltip 
                         contentStyle={{ 
@@ -324,7 +325,7 @@ const Dashboard = () => {
               {reporte?.series && (
                 <Box sx={{ height: 320, mt: 2 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={reporte.series} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={reporte.series} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorRecaudacion" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
@@ -342,6 +343,7 @@ const Dashboard = () => {
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: '#666', fontSize: 12 }}
+                        width={50}
                       />
                       <Tooltip 
                         contentStyle={{ 
