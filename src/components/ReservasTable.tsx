@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -22,7 +23,7 @@ import {
   Typography,
   Grid,
 } from '@mui/material';
-import { CheckCircle, Cancel } from '@mui/icons-material';
+import { CheckCircle, Cancel, Check } from '@mui/icons-material';
 import { useReservaStore } from '../store/useReservaStore';
 import { useCanchaStore } from '../store/useCanchaStore';
 import { EstadoReserva } from '../types';
@@ -55,7 +56,7 @@ const deporteLabels: Record<string, string> = {
 type OrderBy = 'fecha' | 'hora' | 'cliente' | 'estado' | 'monto';
 
 const ReservasTable = ({ canchaId }: ReservasTableProps) => {
-  const { reservas, loading, error, fetchReservas, fetchReservasAdministrador, confirmarReserva, rechazarReserva } = useReservaStore((state) => ({
+  const { reservas, loading, error, fetchReservas, fetchReservasAdministrador, confirmarReserva, rechazarReserva, confirmarTodasReservas } = useReservaStore((state) => ({
     reservas: state.reservas,
     loading: state.loading,
     error: state.error,
@@ -63,6 +64,7 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
     fetchReservasAdministrador: state.fetchReservasAdministrador,
     confirmarReserva: state.confirmarReserva,
     rechazarReserva: state.rechazarReserva,
+    confirmarTodasReservas: state.confirmarTodasReservas,
   }));
 
   const { canchas, fetchCanchas } = useCanchaStore((state) => ({
@@ -170,6 +172,16 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
     }
   };
 
+  const handleConfirmarTodas = async () => {
+    try {
+      await confirmarTodasReservas();
+    } catch (err) {
+      // Error ya manejado en el store
+    }
+  };
+
+  const reservasPendientes = reservas.filter(r => r.estado === 'pendiente').length;
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
@@ -228,6 +240,17 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
           
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="subtitle1">Total: {reservas.length} reservas</Typography>
+            {reservasPendientes > 0 && (
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<Check />}
+                onClick={handleConfirmarTodas}
+                disabled={loading}
+              >
+                Confirmar todas ({reservasPendientes})
+              </Button>
+            )}
           </Box>
           
           {loading ? (

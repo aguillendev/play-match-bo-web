@@ -48,10 +48,16 @@ async function rechazarReserva(reservaId: number): Promise<Reserva> {
   return response.data;
 }
 
+async function confirmarTodasReservas(): Promise<{ mensaje: string }> {
+  const response = await httpClient.post<string>('/reservas/confirmar-todas');
+  return { mensaje: response.data };
+}
+
 export const reservaService = {
   listarPorCancha,
   listarDelAdministrador,
   confirmarReserva,
   rechazarReserva,
+  confirmarTodasReservas,
 };
 

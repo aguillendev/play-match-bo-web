@@ -11,6 +11,7 @@ type ReservaState = {
   fetchReservasAdministrador: (filters?: ReservaFilters) => Promise<void>;
   confirmarReserva: (reservaId: number) => Promise<void>;
   rechazarReserva: (reservaId: number) => Promise<void>;
+  confirmarTodasReservas: () => Promise<void>;
 };
 
 export const useReservaStore = create<ReservaState>()(
@@ -84,6 +85,29 @@ export const useReservaStore = create<ReservaState>()(
       } catch (error: any) {
         console.error(error);
         let errorMsg = 'No se pudo rechazar la reserva';
+        
+        if (error?.response?.data?.message) {
+          errorMsg = error.response.data.message;
+        }
+        
+        set({ loading: false, error: errorMsg });
+        throw error;
+      }
+    },
+    async confirmarTodasReservas() {
+      set({ loading: true, error: undefined });
+      try {
+        await reservaService.confirmarTodasReservas();
+        // Actualizar todas las reservas pendientes a confirmadas
+        set((state) => ({
+          reservas: state.reservas.map((r) => 
+            r.estado === 'pendiente' ? { ...r, estado: 'confirmada' as const } : r
+          ),
+          loading: false,
+        }));
+      } catch (error: any) {
+        console.error(error);
+        let errorMsg = 'No se pudieron confirmar las reservas';
         
         if (error?.response?.data?.message) {
           errorMsg = error.response.data.message;
