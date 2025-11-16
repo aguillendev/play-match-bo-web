@@ -54,7 +54,7 @@ const deporteLabels: Record<string, string> = {
   OTRO: 'Otro',
 };
 
-type OrderBy = 'fecha' | 'hora' | 'cliente' | 'estado' | 'monto';
+type OrderBy = 'fecha' | 'hora' | 'cliente' | 'estado' | 'monto' | 'cancha';
 
 const ReservasTable = ({ canchaId }: ReservasTableProps) => {
   const { reservas, loading, error, fetchReservas, fetchReservasAdministrador, confirmarReserva, rechazarReserva, confirmarTodasReservas } = useReservaStore((state) => ({
@@ -282,7 +282,15 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Cancha</TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={orderBy === 'cancha'}
+                        direction={orderBy === 'cancha' ? order : 'asc'}
+                        onClick={() => handleRequestSort('cancha')}
+                      >
+                        Cancha
+                      </TableSortLabel>
+                    </TableCell>
                     <TableCell>
                       <TableSortLabel
                         active={orderBy === 'cliente'}
