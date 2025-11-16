@@ -10,6 +10,7 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
+  Pagination,
   Select,
   SelectChangeEvent,
   Table,
@@ -84,6 +85,8 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
   const [periodo, setPeriodo] = useState<'dia' | 'semana' | 'mes' | 'todas'>('dia');
   const [orderBy, setOrderBy] = useState<OrderBy>('fecha');
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
+  const [page, setPage] = useState(1);
+  const [rowsPerPage] = useState(10);
 
   // Calcular fechas según el período seleccionado
   const calcularFechas = (periodo: 'dia' | 'semana' | 'mes' | 'todas') => {
@@ -135,6 +138,9 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
       // Si no hay canchaId, mostrar todas las reservas del administrador
       fetchReservasAdministrador(filters);
     }
+    
+    // Resetear a la primera página cuando cambien los filtros
+    setPage(1);
   }, [canchaId, filtro, filtroCancha, cliente, periodo, orderBy, order, fetchReservas, fetchReservasAdministrador]);
 
   const handleEstadoChange = (event: SelectChangeEvent) => {
@@ -180,7 +186,19 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
     }
   };
 
+  const handleChangePage = (_event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
   const reservasPendientes = reservas.filter(r => r.estado === 'pendiente').length;
+
+  // Calcular reservas paginadas
+  const reservasPaginadas = reservas.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
+
+  const totalPages = Math.ceil(reservas.length / rowsPerPage);
 
   return (
     <Box>
@@ -260,115 +278,130 @@ const ReservasTable = ({ canchaId }: ReservasTableProps) => {
           ) : reservas.length === 0 ? (
             <Alert severity="info">No hay reservas para el filtro seleccionado.</Alert>
           ) : (
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Cancha</TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      active={orderBy === 'cliente'}
-                      direction={orderBy === 'cliente' ? order : 'asc'}
-                      onClick={() => handleRequestSort('cliente')}
-                    >
-                      Cliente
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      active={orderBy === 'fecha'}
-                      direction={orderBy === 'fecha' ? order : 'asc'}
-                      onClick={() => handleRequestSort('fecha')}
-                    >
-                      Fecha
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      active={orderBy === 'hora'}
-                      direction={orderBy === 'hora' ? order : 'asc'}
-                      onClick={() => handleRequestSort('hora')}
-                    >
-                      Horario
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell>
-                    <TableSortLabel
-                      active={orderBy === 'estado'}
-                      direction={orderBy === 'estado' ? order : 'asc'}
-                      onClick={() => handleRequestSort('estado')}
-                    >
-                      Estado
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell align="right">
-                    <TableSortLabel
-                      active={orderBy === 'monto'}
-                      direction={orderBy === 'monto' ? order : 'asc'}
-                      onClick={() => handleRequestSort('monto')}
-                    >
-                      Monto
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell align="center">Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {reservas.map((reserva) => (
-                  <TableRow key={reserva.id} hover>
+            <>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Cancha</TableCell>
                     <TableCell>
-                      <Box>
-                        <Typography variant="body2" fontWeight={600}>
-                          {reserva.canchaNombre || `Cancha ${reserva.canchaId}`}
-                        </Typography>
-                        {reserva.canchaDeporte && (
-                          <Typography variant="caption" color="text.secondary">
-                            {deporteLabels[reserva.canchaDeporte] || reserva.canchaDeporte}
-                          </Typography>
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell>{reserva.cliente}</TableCell>
-                    <TableCell>{formatearFecha(reserva.fecha)}</TableCell>
-                    <TableCell>
-                      {reserva.horaInicio} - {reserva.horaFin}
+                      <TableSortLabel
+                        active={orderBy === 'cliente'}
+                        direction={orderBy === 'cliente' ? order : 'asc'}
+                        onClick={() => handleRequestSort('cliente')}
+                      >
+                        Cliente
+                      </TableSortLabel>
                     </TableCell>
                     <TableCell>
-                      <Chip label={estadoLabels[reserva.estado]} color={colorPorEstado[reserva.estado]} size="small" />
+                      <TableSortLabel
+                        active={orderBy === 'fecha'}
+                        direction={orderBy === 'fecha' ? order : 'asc'}
+                        onClick={() => handleRequestSort('fecha')}
+                      >
+                        Fecha
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={orderBy === 'hora'}
+                        direction={orderBy === 'hora' ? order : 'asc'}
+                        onClick={() => handleRequestSort('hora')}
+                      >
+                        Horario
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={orderBy === 'estado'}
+                        direction={orderBy === 'estado' ? order : 'asc'}
+                        onClick={() => handleRequestSort('estado')}
+                      >
+                        Estado
+                      </TableSortLabel>
                     </TableCell>
                     <TableCell align="right">
-                      {reserva.monto != null ? `ARS $${reserva.monto.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
+                      <TableSortLabel
+                        active={orderBy === 'monto'}
+                        direction={orderBy === 'monto' ? order : 'asc'}
+                        onClick={() => handleRequestSort('monto')}
+                      >
+                        Monto
+                      </TableSortLabel>
                     </TableCell>
-                    <TableCell align="center">
-                      {reserva.estado === 'pendiente' && (
-                        <Box display="flex" gap={1} justifyContent="center">
-                          <Tooltip title="Confirmar reserva">
-                            <IconButton
-                              color="success"
-                              size="small"
-                              onClick={() => handleConfirmar(reserva.id)}
-                              disabled={loading}
-                            >
-                              <CheckCircle />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Rechazar reserva">
-                            <IconButton
-                              color="error"
-                              size="small"
-                              onClick={() => handleRechazar(reserva.id)}
-                              disabled={loading}
-                            >
-                              <Cancel />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      )}
-                      {reserva.estado !== 'pendiente' && <Typography variant="caption" color="text.secondary">-</Typography>}
-                    </TableCell>
+                    <TableCell align="center">Acciones</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {reservasPaginadas.map((reserva) => (
+                    <TableRow key={reserva.id} hover>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2" fontWeight={600}>
+                            {reserva.canchaNombre || `Cancha ${reserva.canchaId}`}
+                          </Typography>
+                          {reserva.canchaDeporte && (
+                            <Typography variant="caption" color="text.secondary">
+                              {deporteLabels[reserva.canchaDeporte] || reserva.canchaDeporte}
+                            </Typography>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell>{reserva.cliente}</TableCell>
+                      <TableCell>{formatearFecha(reserva.fecha)}</TableCell>
+                      <TableCell>
+                        {reserva.horaInicio} - {reserva.horaFin}
+                      </TableCell>
+                      <TableCell>
+                        <Chip label={estadoLabels[reserva.estado]} color={colorPorEstado[reserva.estado]} size="small" />
+                      </TableCell>
+                      <TableCell align="right">
+                        {reserva.monto != null ? `ARS $${reserva.monto.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
+                      </TableCell>
+                      <TableCell align="center">
+                        {reserva.estado === 'pendiente' && (
+                          <Box display="flex" gap={1} justifyContent="center">
+                            <Tooltip title="Confirmar reserva">
+                              <IconButton
+                                color="success"
+                                size="small"
+                                onClick={() => handleConfirmar(reserva.id)}
+                                disabled={loading}
+                              >
+                                <CheckCircle />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Rechazar reserva">
+                              <IconButton
+                                color="error"
+                                size="small"
+                                onClick={() => handleRechazar(reserva.id)}
+                                disabled={loading}
+                              >
+                                <Cancel />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        )}
+                        {reserva.estado !== 'pendiente' && <Typography variant="caption" color="text.secondary">-</Typography>}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              {totalPages > 1 && (
+                <Box display="flex" justifyContent="center" mt={3}>
+                  <Pagination
+                    count={totalPages}
+                    page={page}
+                    onChange={handleChangePage}
+                    color="primary"
+                    showFirstButton
+                    showLastButton
+                  />
+                </Box>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
