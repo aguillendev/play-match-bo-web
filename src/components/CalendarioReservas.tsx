@@ -265,6 +265,10 @@ const CalendarioReservas = () => {
         : reserva.estado === 'pendiente'
         ? '#fff7ed'
         : '#f5f5f5';
+      
+      const borderStyle = reserva.estado === 'confirmada' 
+        ? `2px solid ${color}` 
+        : '1px solid #e5e7eb';
 
       // Si el porcentaje es menor a 100%, crear un gradiente
       const backgroundStyle = porcentaje < 100 
@@ -275,12 +279,19 @@ const CalendarioReservas = () => {
         <Tooltip 
           title={
             <Box>
-              <Typography variant="body2">{reserva.cliente}</Typography>
+              <Typography variant="body2" fontWeight={600}>{reserva.cliente}</Typography>
               <Typography variant="caption">Horario: {reserva.horaInicio.substring(0, 5)} - {reserva.horaFin.substring(0, 5)}</Typography>
-              <Typography variant="caption" display="block">Estado: {reserva.estado}</Typography>
+              <Typography variant="caption" display="block" fontWeight={600}>
+                Estado: {reserva.estado === 'confirmada' ? 'CONFIRMADA ✓' : reserva.estado === 'pendiente' ? 'PENDIENTE' : 'CANCELADA'}
+              </Typography>
               <Typography variant="caption" display="block">
                 ${reserva.monto}
               </Typography>
+              {reserva.estado === 'confirmada' && (
+                <Typography variant="caption" display="block" sx={{ color: '#22c55e', fontWeight: 600, mt: 0.5 }}>
+                  ⚠️ Horario NO disponible
+                </Typography>
+              )}
             </Box>
           }
         >
@@ -288,7 +299,7 @@ const CalendarioReservas = () => {
             sx={{
               height: 50,
               background: backgroundStyle,
-              border: '1px solid #e5e7eb',
+              border: borderStyle,
               borderTop: 'none',
               borderLeft: 'none',
               display: 'flex',
@@ -296,11 +307,12 @@ const CalendarioReservas = () => {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 0.5,
-              cursor: 'pointer',
+              cursor: reserva.estado === 'confirmada' ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',
+              opacity: reserva.estado === 'confirmada' ? 0.9 : 1,
               '&:hover': {
                 boxShadow: `0 2px 8px ${color}40`,
-                transform: 'scale(1.02)',
+                transform: reserva.estado === 'confirmada' ? 'none' : 'scale(1.02)',
                 zIndex: 10,
                 borderColor: color,
               },
@@ -312,7 +324,7 @@ const CalendarioReservas = () => {
                   {reserva.cliente?.split(' ')[0]}
                 </Typography>
                 <Chip
-                  label={reserva.estado === 'confirmada' ? 'Conf.' : 'Pend.'}
+                  label={reserva.estado === 'confirmada' ? '✓ Conf.' : 'Pend.'}
                   size="small"
                   sx={{
                     height: 16,
